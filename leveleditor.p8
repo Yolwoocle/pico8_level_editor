@@ -27,11 +27,24 @@ function _update60()
 	end
 	
 	-- world to string
-	if btn(🅾️) then
+	if btn(➡️) and btn(⬅️) then
 	a=""
-		for y =0,16 do
-			for x = 0,16 do
-				a=a..tostr(mget(x,y))..","
+	 for y =0,16 do
+	 	for x = 0,16 do
+	 		a=a..chr(mget(x,y)+34)
+	 		printh(a,'@clip')
+			end
+		end
+	end
+	
+	--maptoprint
+	if btn(🅾️)then
+	local maptoprint = stat(4)
+	local elt = 1
+	for y =0,16 do
+	 	for x = 0,16 do
+	 		mset(x,y,ord(sub(maptoprint,elt,elt))-34)
+	 		elt += 1
 			end
 		end
 	end
@@ -40,7 +53,6 @@ end
 function _draw()
 	cls()
 	map()
-	print(a,0,0)
 	print("mode:"..mode,0,8)
 	print("debug:"..tostr(debug),0,16)
 	
@@ -108,10 +120,8 @@ end
 function editmap()
 	--roll in item list
 	if mscrl !=0 then
-		cui += mscrl
-		if(cui>#block_list) cui=1
-		if(cui<=0) cui=#block_list
-		cusel = block_list[cui]
+		cui = (cui+mscrl)%#block_list
+	 blockselected_in_liste()
 	end
 	
 	local blocktoplace
@@ -130,7 +140,7 @@ function editmap()
 		
 		for i=1,#block_list do
 			if block == block_list[i] then
-				nb_blockselected = i-1
+				cui = i-1
 				blockselected_in_liste()
 			end
 		end
@@ -143,7 +153,7 @@ function editmap()
 end
 
 function blockselected_in_liste()
-	blockselected = block_list[nb_blockselected+1]
+	cusel = block_list[cui+1]
 end
 
 -->8
