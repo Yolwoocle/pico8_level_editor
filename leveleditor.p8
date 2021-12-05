@@ -23,7 +23,7 @@ function _update60()
 	a=""
 	 for y =0,16 do
 	 	for x = 0,16 do
-	 		a=a..tostr(mget(x,y))..","
+	 		a=a..chr(mget(x,y)+32)
 			end
   end
 	end
