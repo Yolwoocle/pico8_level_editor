@@ -8,6 +8,7 @@ function _init()
 	mode = "edit" 
 	init_cursor()
 	init_player()
+	init_hotbar()
 end
 
 function _update60()
@@ -29,6 +30,8 @@ function _update60()
 			init_player()
 		end
 		
+		update_btns(hotbar)
+		
 	elseif mode == "play" then
 		update_player()
 		update_objs()
@@ -41,10 +44,12 @@ end
 function _draw()
 	cls()
 	map()
-	print("mode:"..mode,0,8)
-	print("debug:"..tostr(debug),0,16)
+	color(7)
+	--print("debug:"..tostr(debug),0,16)
 	
 	if mode == "edit" then
+		draw_btns(hotbar)
+		--no code below this
 		draw_cursor()
 		
 	elseif mode == "play" then
@@ -60,7 +65,7 @@ end
 -->8
 --mouse & cursor
 function init_cursor()
-	cui = 0
+	cui = 1
 	cusel = 1
 end
 
@@ -111,8 +116,10 @@ end
 function editmap()
 	--roll in item list
 	if mscrl !=0 then
-		cui = (cui+mscrl)%#block_list
-	 blockselected_in_liste()
+		cui += mscrl
+		cui %= #block_list
+		if(cui<=0)cui = #block_list
+		update_sel()
 	end
 	
 	local blocktoplace
@@ -132,7 +139,7 @@ function editmap()
 		for i=1,#block_list do
 			if block == block_list[i] then
 				cui = i-1
-				blockselected_in_liste()
+				update_sel()
 			end
 		end
 	end
@@ -143,8 +150,8 @@ function editmap()
 	end 
 end
 
-function blockselected_in_liste()
-	cusel = block_list[cui+1]
+function update_sel()
+	cusel = block_list[cui]
 end
 
 function wd_str()
@@ -291,22 +298,25 @@ function collide(o,bounce)
 	local coll_xy = collision(
 	ox+dx, oy+dy, w, h,o)
 	
-	if coll_xy then
+	local output = false
+	if coll_x then
+		o.dx *= -bounce
+		output = true
+	end
+	
+	if coll_y then
+		o.dy *= -bounce
+		output = true
+	end
+	
+	if coll_xy and not output then
 		--prevent stuck in corners 
 		o.dx *= -bounce
 		o.dy *= -bounce
-		return true
-		
-	elseif coll_x then
-		o.dx *= -bounce
-		return true
-		
-	elseif coll_y then
-		o.dy *= -bounce
-		return true
+		output = true
 	end
 	
-	return false
+	return output
 end
 
 function rect_overlap(ax,ay,
@@ -315,6 +325,13 @@ aw,ah,bx,by,bw,bh)
 	         or ay > by+bh
 	         or ax+aw < bx
 	         or ay+ah < by)
+end
+
+function point_rect_coll(x,y,x1,y1,w,h)
+	return x1 <= x
+	   and x1+w >= x
+	   and y1 <= y
+	   and y1+w >= y
 end
 
 function obj_coll(a,b)
@@ -344,7 +361,54 @@ local y=y\8
 end
 -->8
 --ui
-function button(x,y,w,h,txt)
+function make_button(n,x,y,w,h,sp,txt,onclick)
+	return {
+		n=n,
+		x=x, y=y,
+		w=w, h=h,
+		sp=sp,
+		txt=txt,
+		
+		hovered=false,
+		onclick=onclick,
+	}
+end
+
+function update_btns(btns)
+	for b in all(btns)do
+		if point_rect_coll(mx,my,b.x,b.y,b.w,b.h) then
+			b.hovered = true
+			if lmb then
+				b:onclick()
+			end
+		end
+		
+		if my<30 then
+			b.y+=(-9-b.y)/6
+		else
+			b.y+=(2-b.y)/6
+		end
+	end
+end
+
+function draw_btns(btns)
+	for b in all(btns)do
+		local x,y,w,h=b.x,b.y,b.w,b.h
+		rectfill(x,y,x+w,y+h,1)
+		spr(b.sp,x+1,y+1)
+		if(b.n==cui)rect(x,y,x+w,y+h,7)
+	end
+end
+
+---
+
+function init_hotbar()
+	hotbar={}
+	for i=1,14 do
+		add(hotbar, make_button(i,
+		-8+9*i, 2,
+		9,9,i,"lol",sgn))
+	end
 end
 __gfx__
 000000000dddddd000000000e20000e2e88888827fffffff008822000dddddd00000000000000000000000000000000000000000000000000000000000000000
