@@ -164,12 +164,13 @@ function init_player()
 	 x=64,y=64,
 	 dx=0,dy=0,
 	 
+	 bx=1,by=1,
+	 bw=6,bh=6,
+	 
 	 spd=.4,
 	 fric=.75,
 	 
 	 spr=64,
-	 bw=6,bh=6,
-	 bx=1,by=1,
 	}
 	blockselected=block_list[1]
 	nb_blockselected=0
@@ -199,6 +200,9 @@ function make_ball(x,y)
 		x=x, y=y,
 		dx=0,dy=0,
 		
+		bx=1,by=1,
+		bw=6,bh=6,
+		
 		spr=2,
 		kickable = true,
 	}
@@ -208,16 +212,28 @@ function update_objs()
 	for o in all(objects)do
 		o.x += o.dx
 		o.y += o.dy
+		local x=o.x
+		local y=o.y
 		
-		if kickable and rect_overlap(o,p) then
+		o.debug=obj_coll(o,p)
+		if o.kickable and obj_coll(o,p) then
 			--determine kick axis
-			local axis=split"1,0"
-			if(abs(p.dy)>abs(p.dx))axis=split"0,1"
+			local axis=split"3,0"
+			if(abs(p.dy)>abs(p.dx))axis=split"0,3"
 			
+			o.kickable = false
+			o.kicked = true
 			o.dx = sgn(p.dx)*axis[1]
 			o.dy = sgn(p.dy)*axis[2]
 			
 			debug=tostr(o.dx).." "..tostr(o.dy)
+			
+		end
+		if o.kicked then
+			if collide(o,1) then
+				kick_block(o,x,y)
+			end
+			
 		end
 	end
 end
@@ -235,7 +251,7 @@ function is_solid(x,y)
 	return fget(mget(x\8,y\8),0)
 end
 
-function collision(x,y,w,h,flag)
+function collision(x,y,w,h)
 	return 
 	   is_solid(x,  y)
 	or is_solid(x+w,y)
@@ -243,58 +259,66 @@ function collision(x,y,w,h,flag)
 	or is_solid(x+w,y+h) 
 end
 
-function collide(o)
+function collide(o,bounce)
 	local x,y = o.x,o.y
 	local dx,dy = o.dx,o.dy
-	local w,h = o.bw,o.bh
+	local w,h = o.bw-1,o.bh-1
 	local ox,oy = x+o.bx,y+o.by
-	local bounce = 0.1
+	bounce = bounce or 0.1 
 	
 	--collisions
-	local e = 1
 	local coll_x = collision( 
-	ox+dx, oy,    w-e, h-e)
+	ox+dx, oy,    w, h)
 	local coll_y = collision(
-	ox,    oy+dy, w-e, h-e)
+	ox,    oy+dy, w, h)
 	local coll_xy = collision(
-	ox+dx, oy+dy, w-e, h-e)
+	ox+dx, oy+dy, w, h)
 	
-	if coll_x then
-		o.dx *= -bounce
-	end
-	
-	if coll_y then
-		o.dy *= -bounce
-	end
-	
-	if coll_xy and 
-	not coll_x and not coll_y then
+	if coll_xy then
 		--prevent stuck in corners 
 		o.dx *= -bounce
 		o.dy *= -bounce
+		return true
+		
+	elseif coll_x then
+		o.dx *= -bounce
+		return true
+		
+	elseif coll_y then
+		o.dy *= -bounce
+		return true
 	end
+	
+	return false
 end
 
 function rect_overlap(ax,ay,
 aw,ah,bx,by,bw,bh)
-	return not (ax>bx+bw
-	         or ay>by+bh
-	         or ax+aw<bx+bw
-	         or ay+ah<by+bh)
+	return not (ax > bx+bw
+	         or ay > by+bh
+	         or ax+aw < bx
+	         or ay+ah < by)
 end
 
-function is_obj_coll(a,b)
+function obj_coll(a,b)
 	local ax = a.x+a.bx
 	local ay = a.y+a.by
+	
 	local bx = b.x+b.bx
 	local by = b.y+b.by
+	
 	return rect_overlap(
-	ax, ay, ax+a.w, ay+a.h,
-	bx, by, bx+b.w, by+b.h)
+	ax, ay, a.bw, a.bh,
+	bx, by, b.bw, b.bh
+	)
+end
+-->8
+--ui
+function button(x,y,w,h,txt)
 end
 __gfx__
-000000000dddddd000000000e20000e2e8888882afffffff00882200000000000000000000000000000000000000000000000000000000000000000000000000
-00000000d666666d00bbb3008207708222222222ffaaaaa408888ee0000000000000000000000000000000000000000000000000000000000000000000000000
+000000000dddddd000000000e20000e2e88888827fffffff00882200000000000000000000000000000000000000000000000000000000000000000000000000
+00000000d666666d00bbb3008207708222222222faaaaaa408888ee0000000000000000000000000000000000000000000000000000000000000000000000000
 00700700d6dddd6d0b3b3bb08270078200700700faa999a408e28220000000000000000000000000000000000000000000000000000000000000000000000000
 00077000d6dddd6d03b3b7708200008207000070fa9aa99408e28ee0000000000000000000000000000000000000000000000000000000000000000000000000
 00077000d6dddd6d7bb376678200008207000070faaa99a408e28220000000000000000000000000000000000000000000000000000000000000000000000000
@@ -344,3 +368,5 @@ d677776d000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0001020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__sfx__
+0001000000000000002d0502d05000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
