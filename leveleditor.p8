@@ -133,12 +133,11 @@ function editmap()
 		
 	elseif mmb then
 		-- short cut
-		--todo: remove
 		block = mget(cux,cuy)
 		
 		for i=1,#block_list do
 			if block == block_list[i] then
-				cui = i-1
+				cui = i
 				update_sel()
 			end
 		end
@@ -241,8 +240,8 @@ function update_objs()
 		o.debug=obj_coll(o,p)
 		if o.kickable and obj_coll(o,p) then
 			--determine kick axis
-			local axis=split"3,0"
-			if(abs(p.dy)>abs(p.dx))axis=split"0,3"
+			local axis=split"2,0"
+			if(abs(p.dy)>abs(p.dx))axis=split"0,2"
 			
 			o.kickable = false
 			o.kicked = true
@@ -252,15 +251,43 @@ function update_objs()
 			debug=tostr(o.dx).." "..tostr(o.dy)
 			
 		end
-		local coll = collide(o,1)
-		if o.kicked then
-			if coll then
-				interact_block(x+o.dx*3,y+o.dy*3)
-			end
+		collide(o,1)
+--		if o.kicked then
+--			if collide(o,1,true) then
+--			interact_block(o,x+o.dx*3,y+o.dy*3)
+--			end
+			
+--		end
+		for i in all(objects)do
+  	if (obj_coll(o,i) and (i.x!=o.x or i.y!=o.y)) del(objects,o) del(objects,i)
 		end
 		
+		if x%8==0 and y%8==0then 
+		map_x = x/8
+		map_y = y/8
+		check = true
+		else check = false
+		end
+		if check then
+		 for i = -1,1,2 do
+				if mget(map_x+i,map_y)==3 then
+		 		axis=split"2,0"
+					o.dx = -i*axis[1]
+					o.dy = 0
+				end
+			end
+			for i = -1,1,2 do
+				if mget(map_x,map_y+i)==4 then
+		 		axis=split"0,2"
+					o.dx = 0
+					o.dy = -i*axis[2]
+				end
+			end
+		end
 	end
 end
+
+
 
 function draw_objs()
 	for o in all(objects)do
