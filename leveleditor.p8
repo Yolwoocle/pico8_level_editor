@@ -8,6 +8,7 @@ function _init()
 	mode = "edit" 
 	init_cursor()
 	init_player()
+	init_hotbar()
 end
 
 function _update60()
@@ -28,22 +29,22 @@ function _update60()
 			parse_level()
 		end
 		
+		update_btns(hotbar)
+		
 	elseif mode == "play" then
 		update_player()
 		update_objs()
 		if(btnp(❎))mode="edit" wd_passt(wd)
 	end
 	
-
 end
 
 function _draw()
 	cls()
 	map()
-	print("mode:"..mode,0,8)
-	print("debug:"..tostr(debug),0,16)
 	
 	if mode == "edit" then
+		draw_btns(hotbar)
 		draw_cursor()
 		
 	elseif mode == "play" then
@@ -51,6 +52,10 @@ function _draw()
 		draw_objs()
 		
 	end
+	
+	color(7)
+	--print("debug:"..tostr(debug),0,16)
+	
 end
 
 function abtn(b)
@@ -59,7 +64,7 @@ end
 -->8
 --mouse & cursor
 function init_cursor()
-	cui = 0
+	cui = 1
 	cusel = 1
 end
 
@@ -110,8 +115,10 @@ end
 function editmap()
 	--roll in item list
 	if mscrl !=0 then
-		cui = (cui+mscrl)%#block_list
-	 blockselected_in_liste()
+		cui += mscrl
+		cui %= #block_list
+		if(cui<=0)cui = #block_list
+		blockselected_in_liste()
 	end
 	
 	local blocktoplace
@@ -143,11 +150,11 @@ function editmap()
 end
 
 function blockselected_in_liste()
-	cusel = block_list[cui+1]
+	cusel = block_list[cui]
 end
 
 function wd_str()
-a=""
+	a=""
 	for y =0,16 do
 		for x = 0,16 do
 			a=a..chr(mget(x,y)+34)
@@ -240,7 +247,7 @@ function update_objs()
 		end
 		if o.kicked then
 			if collide(o,1) then
-				kick_block(o,x,y)
+				--kick_block(o,x,y)
 			end
 			
 		end
@@ -268,6 +275,13 @@ function collision(x,y,w,h)
 	or is_solid(x+w,y+h) 
 end
 
+function point_rect_coll(x,y,x1,y1,w,h)
+	return x1 <= x
+	   and x1+w >= x
+	   and y1 <= y
+	   and y1+w >= y
+end
+
 function collide(o,bounce)
 	local x,y = o.x,o.y
 	local dx,dy = o.dx,o.dy
@@ -283,22 +297,25 @@ function collide(o,bounce)
 	local coll_xy = collision(
 	ox+dx, oy+dy, w, h)
 	
-	if coll_xy then
+	local output = false
+	if coll_x then
+		o.dx *= -bounce
+		output = true
+	end
+	
+	if coll_y then
+		o.dy *= -bounce
+		output = true
+	end
+	
+	if coll_xy and not output then
 		--prevent stuck in corners 
 		o.dx *= -bounce
 		o.dy *= -bounce
-		return true
-		
-	elseif coll_x then
-		o.dx *= -bounce
-		return true
-		
-	elseif coll_y then
-		o.dy *= -bounce
-		return true
+		output = true
 	end
 	
-	return false
+	return output
 end
 
 function rect_overlap(ax,ay,
@@ -323,17 +340,64 @@ function obj_coll(a,b)
 end
 -->8
 --ui
-function button(x,y,w,h,txt)
+function make_button(n,x,y,w,h,sp,txt,onclick)
+	return {
+		n=n,
+		x=x, y=y,
+		w=w, h=h,
+		sp=sp,
+		txt=txt,
+		
+		hovered=false,
+		onclick=onclick,
+	}
+end
+
+function update_btns(btns)
+	for b in all(btns)do
+		if point_rect_coll(mx,my,b.x,b.y,b.w,b.h) then
+			b.hovered = true
+			if lmb then
+				b:onclick()
+			end
+		end
+		
+		if my<30 then
+			b.y+=(-9-b.y)/6
+		else
+			b.y+=(2-b.y)/6
+		end
+	end
+end
+
+function draw_btns(btns)
+	for b in all(btns)do
+		local x,y,w,h=b.x,b.y,b.w,b.h
+		rectfill(x,y,x+w,y+h,1)
+		spr(b.sp,x+1,y+1)
+		if(b.n==cui)rect(x,y,x+w,y+h,7)
+	end
+end
+
+---
+
+function init_hotbar()
+	hotbar={}
+	for i=1,14 do
+		add(hotbar, make_button(i,
+		-8+9*i, 2,
+		9,9,i,"lol",sgn))
+	end
 end
 __gfx__
-000000000dddddd000000000e20000e2e88888827fffffff00882200000000000000000000000000000000000000000000000000000000000000000000000000
-00000000d666666d00bbb3008207708222222222faaaaaa408888ee0000000000000000000000000000000000000000000000000000000000000000000000000
-00700700d6dddd6d0b3b3bb08270078200700700faa999a408e28220000000000000000000000000000000000000000000000000000000000000000000000000
-00077000d6dddd6d03b3b7708200008207000070fa9aa99408e28ee0000000000000000000000000000000000000000000000000000000000000000000000000
-00077000d6dddd6d7bb376678200008207000070faaa99a408e28220000000000000000000000000000000000000000000000000000000000000000000000000
-00700700d6dddd6d677761168270078200700700faaaaaa408e28220000000000000000000000000000000000000000000000000000000000000000000000000
-00000000d666666d066611f082077082e8888882faaa99a408888220000000000000000000000000000000000000000000000000000000000000000000000000
-000000000dddddd000ffff002200002222222222a444444400882200000000000000000000000000000000000000000000000000000000000000000000000000
+000000000dddddd000000000e20000e2e88888827fffffff008822000000000000000000006666000000666000000000d000000ed000000ed000000e00000000
+00000000d666666d00bbb3008207708222222222faaaaaa408888ee00666660000666600006006000600606606000600d600660ed606660ed606060e00000000
+00700700d6dddd6d0b3b3bb08270078200700700faa999a408e282200000060000600600006600600606600606000600d606006ed600006ed606060e00000000
+00077000d6dddd6d03b3b7708200008207000070fa9aa99408e28ee00000060000666600000660600606000606000600d600006ed600660ed606060e00000000
+00077000d6dddd6d7bb376678200008207000070faaa99a408e282200000666606600060000006600606000606000600d600006ed600006ed606666e00000000
+00700700d6dddd6d677761168270078200700700faaaaaa408e282200000060006000060060666000606000606000600d600660ed600006ed600060e00000000
+00000000d666666d066611f082077082e8888882faaa99a4088882200000060006000060066600000600666006000600d606666ed606660ed600060e00000000
+000000000dddddd000ffff002200002222222222a4444444008822000000060000666600000000000000000000000000dd00000edd00000ed000000e00000000
 d677776d010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 60000006171000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 70000007177100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
