@@ -23,11 +23,24 @@ function _update60()
 	end
 	
 	-- world to string
-	if btn(🅾️) then
+	if btn(➡️) and btn(⬅️) then
 	a=""
 	 for y =0,16 do
 	 	for x = 0,16 do
-	 		a=a..chr(mget(x,y)+32)
+	 		a=a..chr(mget(x,y)+34)
+	 		printh(a,'@clip')
+			end
+		end
+	end
+	
+	--maptoprint
+	if btn(🅾️)then
+	local maptoprint = stat(4)
+	local elt = 1
+	for y =0,16 do
+	 	for x = 0,16 do
+	 		mset(x,y,ord(sub(maptoprint,elt,elt))-34)
+	 		elt += 1
 			end
 		end
 	end
@@ -36,7 +49,6 @@ end
 function _draw()
 	cls()
 	map()
-	print(a,0,0)
 	print("mode:"..mode,0,8)
 	
 	if mode == "edit" then
