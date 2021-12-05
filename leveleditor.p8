@@ -42,6 +42,7 @@ function _draw()
 	map()
 	print(a,0,0)
 	print("mode:"..mode,0,8)
+	print("debug:"..tostr(debug),0,16)
 	
 	if mode == "edit" then
 		draw_cursor()
@@ -57,7 +58,7 @@ function abtn(b)
 	return btn(b) or btn(b,1)
 end
 -->8
---mouse and cursor
+--mouse & cursor
 function init_cursor()
 	cui = 0
 	cusel = 1
@@ -96,7 +97,7 @@ function parse_level()
 		for x=0,15 do
 			local m=mget(x,y)
 			if fget(m,1) then
-				add(objects,make_ball())
+				add(objects,make_ball(x*8,y*8))
 				mset(x,y,0)
 			end
 			
@@ -180,6 +181,46 @@ function update_player()
 	p.y += p.dy
 end
 
+
+-->8
+--objects (+ collsion)
+function make_ball(x,y)
+	return {
+		x=x, y=y,
+		dx=0,dy=0,
+		
+		spr=2,
+		kickable = true,
+	}
+end
+
+function update_objs()
+	for o in all(objects)do
+		o.x += o.dx
+		o.y += o.dy
+		
+		if kickable and rect_overlap(o,p) then
+			--determine kick axis
+			local axis=split"1,0"
+			if(abs(p.dy)>abs(p.dx))axis=split"0,1"
+			
+			o.dx = sgn(p.dx)*axis[1]
+			o.dy = sgn(p.dy)*axis[2]
+			
+			debug=tostr(o.dx).." "..tostr(o.dy)
+		end
+	end
+end
+
+function draw_objs()
+	for o in all(objects)do
+		spr(o.spr,o.x,o.y)
+	end
+end
+
+
+-- collisions
+ 
 function is_solid(x,y)
 	return fget(mget(x\8,y\8),0)
 end
@@ -224,25 +265,22 @@ function collide(o)
 	end
 end
 
--->8
---objects
-function make_ball(x,y)
-	return {
-		x=x, y=y,
-		dx=0,dy=0,
-		
-		spr=2,
-	}
+function rect_overlap(ax,ay,
+aw,ah,bx,by,bw,bh)
+	return not (ax>bx+bw
+	         or ay>by+bh
+	         or ax+aw<bx+bw
+	         or ay+ah<by+bh)
 end
 
-function update_objs()
-	
-end
-
-function draw_objs()
-	for o in all(objects)do
-		spr(o.spr,o.x,o.y)
-	end
+function is_obj_coll(a,b)
+	local ax = a.x+a.bx
+	local ay = a.y+a.by
+	local bx = b.x+b.bx
+	local by = b.y+b.by
+	return rect_overlap(
+	ax, ay, ax+a.w, ay+a.h,
+	bx, by, bx+b.w, by+b.h)
 end
 __gfx__
 000000000dddddd000000000e20000e2e8888882afffffff00882200000000000000000000000000000000000000000000000000000000000000000000000000
