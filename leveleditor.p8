@@ -9,6 +9,8 @@ function _init()
 	init_cursor()
 	init_player()
 	init_hotbar()
+	menuitem(1,"⬆️ copy level")
+	menuitem(1,"⬇️ paste level")
 end
 
 function _update60()
@@ -59,8 +61,16 @@ function _draw()
 	end
 end
 
+--functions
+
 function abtn(b)
 	return btn(b) or btn(b,1)
+end
+
+function sgn(n)
+	if(n<0)return -1
+	if(n>0)return 1
+	return 0
 end
 -->8
 --mouse & cursor
@@ -183,6 +193,8 @@ function init_player()
 	 bx=1,by=1,
 	 bw=6,bh=6,
 	 
+	 g=0.3,
+	 
 	 spd=.4,
 	 fric=.75,
 	 
@@ -220,6 +232,7 @@ function make_ball(x,y)
 		bw=6,bh=6,
 		
 		spr=2,
+		ghosttimer=0,
 		kickable = true,
 		activate = true,
 		cd = 150,
@@ -233,6 +246,8 @@ function update_objs()
 		o.y += o.dy
 		local x=o.x
 		local y=o.y
+		
+		o.ghosttimer -= 1
 		
 		o.debug=obj_coll(o,p)
 		if o.kickable and obj_coll(o,p) then
@@ -253,36 +268,61 @@ function update_objs()
 --			if collide(o,1,true) then
 --			interact_block(o,x+o.dx*3,y+o.dy*3)
 --			end
-			
+--			
 --		end
 		for i in all(objects)do
-  	if (obj_coll(o,i) and (i.x!=o.x or i.y!=o.y)) del(objects,o) del(objects,i)
+			if obj_coll(o,i) and 
+			(i.x!=o.x or i.y!=o.y)then
+				del(objects,o) 
+				del(objects,i)
+			end
+			
 		end
 		
-		if x%8==0 and y%8==0then 
-		map_x = x/8
-		map_y = y/8
-		check = true
-		else check = false
+		if x%8==0 and y%8==0 then 
+			map_x = x/8
+			map_y = y/8
+			check = true
+		else 
+			check = false
 		end
 		if check then
-		 for i = -1,1,2 do
+			for i = -1,1,2 do
 				if mget(map_x+i,map_y)==3 then
+
 					o.dx = -i*2
+
 					o.dy = 0
 				end
 			end
 			for i = -1,1,2 do
 				if mget(map_x,map_y+i)==4 then
+
 					o.dx = 0
 					o.dy = -i*2
 				end
 			end
+			
 		end
 	end
 end
 
-
+function interact_block(x,y,o)
+	local x=x\8
+	local y=y\8
+	object = mget(x,y)
+	if object == 5 then --chest
+		mset(x,y,21)
+		add(objects,make_ball(
+		 (x+sgn(o.dx))*8,
+		 (y+sgn(o.dy))*8
+		))
+	end
+	if object == 7 then
+		mset(x,y,0)
+		del(objects,o)
+	end
+end
 
 function draw_objs()
 	for o in all(objects)do
@@ -295,10 +335,11 @@ end
  
 function is_solid(x,y,o)
 	if fget(mget(x\8,y\8),0) then
+	
 	if (o.activate) interact_block(x,y,o)
 	return true
 	else
-	return false
+		return false
 	end
 end
 
@@ -315,8 +356,9 @@ function collide(o,bounce)
 	local dx,dy = o.dx,o.dy
 	local w,h = o.bw-1,o.bh-1
 	local ox,oy = x+o.bx,y+o.by
-	bounce = bounce or 0.1 
+	bounce = bounce or 0.01 
 	activate = activate or false
+	
 	--collisions
 	local coll_x = collision( 
 	ox+dx, oy,    w, h,o)
@@ -395,6 +437,7 @@ local cd = o.cd
 	end
 	end
 end
+
 -->8
 --ui
 function make_button(n,x,y,w,h,sp,txt,onclick)
@@ -525,3 +568,5 @@ __map__
 2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__sfx__
+000100001c0501c0501c0501c0501c0501c0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
