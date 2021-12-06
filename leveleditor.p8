@@ -9,6 +9,8 @@ function _init()
 	init_cursor()
 	init_player()
 	init_hotbar()
+	menuitem(1,"⬆️ copy level")
+	menuitem(1,"⬇️ paste level")
 end
 
 function _update60()
@@ -59,8 +61,16 @@ function _draw()
 	end
 end
 
+--functions
+
 function abtn(b)
 	return btn(b) or btn(b,1)
+end
+
+function sgn(n)
+	if(n<0)return -1
+	if(n>0)return 1
+	return 0
 end
 -->8
 --mouse & cursor
@@ -256,38 +266,60 @@ function update_objs()
 --			if collide(o,1,true) then
 --			interact_block(o,x+o.dx*3,y+o.dy*3)
 --			end
-			
+--			
 --		end
 		for i in all(objects)do
-  	if (obj_coll(o,i) and (i.x!=o.x or i.y!=o.y)) del(objects,o) del(objects,i)
+			if obj_coll(o,i) and 
+			(i.x!=o.x or i.y!=o.y)then
+				del(objects,o) 
+				del(objects,i)
+			end
+			
 		end
 		
-		if x%8==0 and y%8==0then 
-		map_x = x/8
-		map_y = y/8
-		check = true
-		else check = false
+		if x%8==0 and y%8==0 then 
+			map_x = x/8
+			map_y = y/8
+			check = true
+		else 
+			check = false
 		end
 		if check then
-		 for i = -1,1,2 do
+			for i = -1,1,2 do
 				if mget(map_x+i,map_y)==3 then
-		 		axis=split"2,0"
+					axis=split"2,0"
 					o.dx = -i*axis[1]
 					o.dy = 0
 				end
 			end
 			for i = -1,1,2 do
 				if mget(map_x,map_y+i)==4 then
-		 		axis=split"0,2"
+					axis=split"0,2"
 					o.dx = 0
 					o.dy = -i*axis[2]
 				end
 			end
+			
 		end
 	end
 end
 
-
+function interact_block(x,y,o)
+	local x=x\8
+	local y=y\8
+	object = mget(x,y)
+	if object == 5 then --chest
+		mset(x,y,21)
+		add(objects,make_ball(
+		 (x+sgn(o.dx))*8,
+		 (y+sgn(o.dy))*8
+		))
+	end
+	if object == 7 then
+		mset(x,y,0)
+		del(objects,o)
+	end
+end
 
 function draw_objs()
 	for o in all(objects)do
@@ -300,10 +332,11 @@ end
  
 function is_solid(x,y,o)
 	if fget(mget(x\8,y\8),0) then
+	
 	if (o.activate) interact_block(x,y,o)
 	return true
 	else
-	return false
+		return false
 	end
 end
 
@@ -380,18 +413,6 @@ function obj_coll(a,b)
 	)
 end
 
-function interact_block(x,y,o)
-	local x=x\8
-	local y=y\8
-	object = mget(x,y)
-	if object == 5 then
-		mset(x,y,21)
-	end
-	if object == 7 then
-		mset(x,y,0)
-		del(objects,o)
-	end
-end
 -->8
 --ui
 function make_button(n,x,y,w,h,sp,txt,onclick)
@@ -493,7 +514,7 @@ d677776d000000000000000000000000000000004555555500000000000000000000000000000000
 00000000600000060117100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000666666660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0001020101010001000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0001020000010001000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
