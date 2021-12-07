@@ -9,8 +9,6 @@ function _init()
 	init_cursor()
 	init_player()
 	init_hotbar()
-	menuitem(1,"⬆️ copy level")
-	menuitem(1,"⬇️ paste level")
 end
 
 function _update60()
@@ -18,13 +16,15 @@ function _update60()
 		update_cursor()
 		editmap()
 		-- world to string
-		if btn(➡️) and btn(⬅️) then
+		menuitem(1,"⬆️ copy level",
+		function()
 			printh(wd_str(),'@clip')
-		end
-	
-		if btn(🅾️)then
+		end)
+		
+		menuitem(2,"⬇️ paste level",
+		function()
 			wd_passt(stat(4))
-		end
+		end)
 		
 		if btnp(❎) then 
 			mode="play"
@@ -40,7 +40,6 @@ function _update60()
 		if(btnp(❎))mode="edit" wd_passt(wd)
 	end
 	
-
 end
 
 function _draw()
@@ -68,9 +67,14 @@ function abtn(b)
 end
 
 function sgn(n)
+	if(n==nil)return nil
 	if(n<0)return -1
 	if(n>0)return 1
 	return 0
+end
+
+function v(x,y)
+	return {x=x,y=y}
 end
 -->8
 --mouse & cursor
@@ -227,6 +231,8 @@ function make_ball(x,y)
 	return {
 		x=x, y=y,
 		dx=0,dy=0,
+		dir=v(0,0),
+		spd=3,
 		
 		bx=1,by=1,
 		bw=6,bh=6,
@@ -250,13 +256,13 @@ function update_objs()
 		o.debug=obj_coll(o,p)
 		if o.kickable and obj_coll(o,p) then
 			--determine kick axis
-			local axis=split"2,0"
-			if(abs(p.dy)>abs(p.dx))axis=split"0,2"
+			local axis=v(2,0)
+			if(abs(p.dy)>abs(p.dx))axis=v(0,2)
 			
 			o.kickable = false
 			o.kicked = true
-			o.dx = sgn(p.dx)*axis[1]
-			o.dy = sgn(p.dy)*axis[2]
+			o.dx = sgn(p.dx)*axis.x
+			o.dy = sgn(p.dy)*axis.y
 			
 			debug=tostr(o.dx).." "..tostr(o.dy)
 			
