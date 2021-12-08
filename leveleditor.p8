@@ -50,7 +50,7 @@ function _draw()
 	map()
 	color(7)
 	--print("debug:"..tostr(debug),0,16)
-	--print(mget(cux,cuy),40,40)
+	spr(16,(p.x+4)\8*8,(p.y+4)\8*8)
 	if mode == "edit" then
 		draw_btns(hotbar)
 		--no code below this
@@ -87,6 +87,8 @@ function init_cursor()
 	cux = 0
 	cuy = 0
 	prevlmb = false
+	prevo = false
+	btno = false
 end
 
 function update_cursor()
@@ -232,17 +234,29 @@ function init_player()
 	 fric=.75,
 	 
 	 spr=64,
+	 dashcd = 0,
+	 activate = false,
+	 cd = 0,
+	 cdmax = 10,
 	}
 	--blockselected=block_list[1]
 	--nb_blockselected=0
 end
 
 function update_player()
+ p.cd = max(p.cd-1,0)
+ p.dashcd = max(p.dashcd-1,0)
+ p.activate = false
+ if (p.dashcd > 11) p.activate = true
+ prevo = btno
+	btno = btn(🅾️)
 	spd=p.spd
+	if (p.dashcd==0 and btno and not(prevo)) spd = 4 p.dashcd = 20
 	if (abtn(⬅️)) p.dx-=spd
 	if (abtn(➡️)) p.dx+=spd
 	if (abtn(⬆️)) p.dy-=spd
 	if (abtn(⬇️)) p.dy+=spd
+	
 	
 	p.dx *= p.fric
 	p.dy *= p.fric
@@ -271,6 +285,7 @@ function make_ball(x,y)
 		kickable = true,
 		activate = true,
 		cd = 0,
+		cdmax = 4,
 	}
 end
 
@@ -345,7 +360,7 @@ function update_objs()
 	end
 end
 
-function interact_block(x,y,o)
+--[[function interact_block(x,y,o)
 	local x=x\8
 	local y=y\8
 	object = mget(x,y)
@@ -360,7 +375,7 @@ function interact_block(x,y,o)
 		mset(x,y,0)
 		del(objects,o)
 	end
-end
+end]]
 
 function draw_objs()
 	for o in all(objects)do
@@ -373,11 +388,10 @@ end
  
 function is_solid(x,y,o)
 	if fget(mget(x\8,y\8),0) then
-	
 	if (o.activate) interact_block(x,y,o)
 	return true
 	else
-		return false
+	return false
 	end
 end
 
@@ -459,32 +473,48 @@ local x=x\8
 local y=y\8
 local cd = o.cd
 	object = mget(x,y)
+	stop_ = false
+	for i = 1,7,3 do
+	for k = 1,7,3 do
+	local _mx = (o.x+i)\8
+  local _my = (o.y+k)\8
+  for a =-1,1 do
+  for z =-1,1 do
+  if not(stop_)and x+a == _mx and y+z == _my then
+   if a+z == 1 or a+z == -1 then
+   g = -a
+   h = -z
+   stop_ = true
+   end
+  end
+  end
+  end
+  end
+  end
+  
 	if cd == 0 then
 	if object == 18 then
 		mset(x,y,21)
-		add(objects,make_ball(
-		 (x+sgn(o.dx))*8,
-		 (y+sgn(o.dy))*8
-		))
+		add(objects,make_ball((x+g)*8,(y+h)*8))
 	elseif object == 5 then
 	mset(x,y,21)
 	elseif object == 19 then
 	mset(x,y,21)
-	mset(x+sgn(o.dx),y+sgn(o.dy),3)
+	mset(x+g,y+h,3)
  elseif object == 20 then
 	mset(x,y,21)
-	mset(x+sgn(o.dx),y+sgn(o.dy),4)
+	mset(x+g,y+h,4)
 	elseif object == 7 then
 		mset(x,y,0)
 		del(objects,o)
 	elseif object == 8 then
 		mset(x,y,24)
-  o.cd = 4
+  o.cd = o.cdmax
   switch = false
   updateswitch()
 	elseif object == 24 then
 		mset(x,y,8)
-		o.cd = 4
+		o.cd = o.cdmax
 		switch = true
 		updateswitch()
 	end
