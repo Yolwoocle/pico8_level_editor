@@ -225,7 +225,7 @@ function init_player()
 	 x=xstart,y=ystart,
 	 dx=0,dy=0,
 	 
-	 bx=2,by=2,
+	 bx=1,by=1,
 	 bw=6,bh=6,
 	 
 	 g=0.3,
@@ -474,8 +474,8 @@ local y=y\8
 local cd = o.cd
 	object = mget(x,y)
 	stop_ = false
-	for i = 1,7,3 do
-	for k = 1,7,3 do
+	for i = 1,6,5 do
+	for k = 1,6,5 do
 	local _mx = (o.x+i)\8
   local _my = (o.y+k)\8
   for a =-1,1 do
