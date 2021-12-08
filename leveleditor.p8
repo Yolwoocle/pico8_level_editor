@@ -27,7 +27,7 @@ function _update60()
 		editmap()
 		
 		-- exporting/importing
-		menuitem(1,"⬆️ export level", function()
+		menuitem(1,"⬆️ copy level", function()
 			make_textptc(2,120,"level copied to clipboard")
 			printh(wd_str(),'@clip')
 		end)
@@ -256,7 +256,7 @@ function init_player()
 	 x=xstart,y=ystart,
 	 dx=0,dy=0,
 	 
-	 bx=2,by=2,
+	 bx=1,by=1,
 	 bw=6,bh=6,
 	 
 	 g=0.3,
@@ -523,13 +523,13 @@ function interact_block(x,y,o)
 	local cd = o.cd
 	object = mget(x,y)
 	stop_ = false
-	for i = 2,6,2 do
-		for k = 2,6,2 do
+	for i = 1,6,5 do
+		for k = 1,6,5 do
 			local _mx = (o.x+i)\8
 			local _my = (o.y+k)\8
-			for a =-1,1 do
-				for z =-1,1 do
-					if not(stop_)and x+a == _mx and y+z == _my then
+				for a =-1,1 do
+					for z =-1,1 do
+						if not(stop_)and x+a == _mx and y+z == _my then
 						if a+z == 1 or a+z == -1 then
 							g = -a
 							h = -z
@@ -540,7 +540,7 @@ function interact_block(x,y,o)
 			end
 		end
 	end
-	 
+  
 	if cd == 0 then
 	if object == 18 then
 		mset(x,y,21)
