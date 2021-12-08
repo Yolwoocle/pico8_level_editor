@@ -225,8 +225,8 @@ function init_player()
 	 x=xstart,y=ystart,
 	 dx=0,dy=0,
 	 
-	 bx=2,by=2,
-	 bw=4,bh=4,
+	 bx=0,by=0,
+	 bw=8,bh=8,
 	 
 	 g=0.3,
 	 
@@ -473,16 +473,25 @@ local x=x\8
 local y=y\8
 local cd = o.cd
 	object = mget(x,y)
-	local _mx = (o.x+4)\8
-  local _my = (o.y+4)\8
+	stop_ = false
+	for i = 1,7,3 do
+	for k = 1,7,3 do
+	local _mx = (o.x+i)\8
+  local _my = (o.y+k)\8
   for a =-1,1 do
   for z =-1,1 do
-  if x+a == _mx and y+z == _my then
+  if not(stop_)and x+a == _mx and y+z == _my then
+   if a+z == 1 or a+z == -1 then
    g = -a
    h = -z
+   stop_ = true
+   end
   end
   end
   end
+  end
+  end
+  
 	if cd == 0 then
 	if object == 18 then
 		mset(x,y,21)
