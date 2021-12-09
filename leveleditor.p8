@@ -340,6 +340,11 @@ function update_objs()
 		o.y += o.dy
 		local x=o.x
 		local y=o.y
+		if abs(o.dx)+abs(o.dy) != 0 then
+			o.kickable = false
+			else 
+			o.kickable = true
+		end
 		
 		o.kicked = not(kickable)
 		
