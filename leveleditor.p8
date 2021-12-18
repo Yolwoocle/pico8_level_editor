@@ -549,7 +549,7 @@ function interact_block(x,y,o)
 	if cd == 0 then
 	if object == 18 then
 		mset(x,y,21)
-		add(objects,make_ball((x+g)*8,(y+h)*8))
+		add(objects,make_ball((x+g)*8,(y+h)*8,2))
 	elseif object == 5 then
 	mset(x,y,21)
 	elseif object == 19 then
